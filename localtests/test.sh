@@ -156,8 +156,19 @@ test_single() {
     --chunk-size=10 \
     --verbose \
     --debug \
-    --stack \
-    --execute ${extra_args[@]}"
+    --stack"
+
+  if [ -f $tests_path/$test_name/postpone-cut-over ] ; then
+    postpone_flag_file="/tmp/gh-ost.postpone.flag"
+    read -r postpone_time < $tests_path/$test_name/postpone-cut-over
+    [ -z "$postpone_time" ] && postpone_time=20
+    echo Postponing: $postpone_time $postpone_flag_file
+    (sleep $postpone_time && /bin/rm $postpone_flag_file &)
+    cmd+=" --postpone-cut-over-flag-file=$postpone_flag_file"
+  fi
+
+  cmd+=" --execute ${extra_args[@]}"
+
   echo_dot
   echo $cmd > $exec_command_file
   echo_dot
